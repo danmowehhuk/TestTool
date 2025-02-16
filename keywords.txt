@@ -1,0 +1,22 @@
+#######################################
+
+# Syntax Coloring Map For TestTool
+
+#######################################
+
+# Class (KEYWORD1)
+
+#######################################
+
+
+TestFunction            KEYWORD1
+
+
+#######################################
+
+# Methods and Functions (KEYWORD2)
+
+#######################################
+
+
+runTestSuite  KEYWORD2

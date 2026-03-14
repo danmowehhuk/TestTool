@@ -133,9 +133,14 @@ void testSomething(TestInvocation* t) {
 
 ## Test Fixtures, `before()` and `after()`
 
-Sometimes, you need to create an object in the global context and access it in multiple tests. When doing
-this, it's a good idea to reset the shared object's state so 1) its behavior is predictable from test to 
-test, and 2) so that memory readings are consistent from test to test.
+Sometimes, you need to create an object in the global context and access it in multiple tests. Because
+global objects persist between tests, any state accumulated during one test will carry over into the next
+unless the fixture is explicitly reset. Use `before()` to reset state to a known baseline before each
+test, or `after()` to clean up after each test.
+
+- Use `before()` when you want to guarantee a clean starting state (e.g., resetting a counter).
+- Use `after()` when you need to clean up resources after a test (e.g., freeing heap allocations).
+- Pass `nullptr` for whichever lifecycle callback you do not need.
 
 `test-suite.ino`
 ```c
@@ -144,8 +149,9 @@ test, and 2) so that memory readings are consistent from test to test.
 
 MyThing thing(1, 2, false, "foo");
 
-// Reset the test fixture after each test
-void after() {
+// Reset the test fixture before each test so that each test starts
+// from a known, clean state regardless of what previous tests did
+void before() {
   thing.reset();
 }
 
@@ -156,11 +162,73 @@ void setup() {
 
   ...
 
-  // Notice the 2nd arg is nullptr because there's no "before()" function
-  runTestSuite(tests, nullptr, after);
+  // Notice the 3rd arg is nullptr because there's no "after()" function
+  runTestSuite(tests, before, nullptr);
 }
 
 void loop() {}
 
 ```
+
+## Memory Profiling
+
+`runTestSuiteShowMem()` prints free memory before and after each test. Stable readings (before ≈ after)
+confirm that the test is not leaking memory. A consistently shrinking "after" value means memory that
+was allocated during the test is not being freed.
+
+The typical pattern is to free all heap allocations in `after()` so the memory baseline is restored
+before the next test is measured:
+
+```c
+MyThing* thing = nullptr;
+
+void after() {
+  delete thing;
+  thing = nullptr;
+}
+
+void testSomething(TestInvocation* t) {
+  thing = new MyThing();
+  // ... assertions ...
+}
+
+void setup() {
+  ...
+  runTestSuiteShowMem(tests, nullptr, after);
+}
+```
+
+Example output:
+```
+Running test suite...
+  Test something that passes.......................... PASSED
+          Free mem before: 6842 after: 6842
+  Test something else................................ PASSED
+          Free mem before: 6842 after: 6842
+All tests passed!
+```
+
+## Repeating Tests
+
+Passing a repeat count runs each test multiple times before moving to the next. This is useful for two
+reasons:
+
+1. **Amplifying leaks**: A 2-byte leak per run becomes 10 bytes after 5 runs — much easier to spot in
+   the memory readings.
+2. **Catching non-determinism**: Tests that are flaky only on repeated invocations will eventually
+   surface.
+
+```c
+// Run each test 5 times, showing memory after each run
+runTestSuiteShowMem(tests, nullptr, after, 5);
+```
+
+## Examples
+
+The `examples/test/` directory contains focused example test suites, each illustrating a single concept:
+
+- `basic/` — Basic test functions, assertions, and all `assertEqual()` variants
+- `memory-profiling/` — Using `runTestSuiteShowMem()` with `after()` to detect heap leaks
+- `test-fixtures/` — Using `before()` to reset a shared fixture between tests
+- `repeating-tests/` — Using the `repeats` parameter to amplify leaks and catch flaky behavior
 

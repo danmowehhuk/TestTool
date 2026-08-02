@@ -53,7 +53,7 @@ const char* TestInvocation::getName() const {
   return _testName;
 }
 
-bool TestInvocation::assert(bool check, const char* message, bool allocate) {
+bool TestInvocation::verify(bool check, const char* message, bool allocate) {
   if (!_success) return false; // TestInvocation already failed
   freeMessage();
   _message = message;
@@ -63,7 +63,7 @@ bool TestInvocation::assert(bool check, const char* message, bool allocate) {
   return check;
 }
 
-bool TestInvocation::assert(bool check, const __FlashStringHelper* message) {
+bool TestInvocation::verify(bool check, const __FlashStringHelper* message) {
   if (!_success) return false; // TestInvocation already failed
   freeMessage();
   _message = reinterpret_cast<const char*>(message);
@@ -73,48 +73,48 @@ bool TestInvocation::assert(bool check, const __FlashStringHelper* message) {
   return check;
 }
 
-bool TestInvocation::assertEqual(const char* actual, const char* expected, const char* message, bool allocate) {
+bool TestInvocation::verifyEqual(const char* actual, const char* expected, const char* message, bool allocate) {
   if (!_success) return false; // TestInvocation already failed
   message = message ? message : defaultAssertEqualsMessage(actual, expected);
-  return assert(strcmp(actual, expected) == 0, message, allocate);
+  return verify(strcmp(actual, expected) == 0, message, allocate);
 }
 
-bool TestInvocation::assertEqual(const char* actual, const __FlashStringHelper* expected, const char* message, bool allocate) {
+bool TestInvocation::verifyEqual(const char* actual, const __FlashStringHelper* expected, const char* message, bool allocate) {
   if (!_success) return false; // TestInvocation already failed
   message = message ? message : defaultAssertEqualsMessage(actual, expected);
-  return assert(strcmp_P(actual, (PGM_P)expected) == 0, message, allocate);
+  return verify(strcmp_P(actual, (PGM_P)expected) == 0, message, allocate);
 }
 
-bool TestInvocation::assertEqual(const char* actual, const __FlashStringHelper* expected, const __FlashStringHelper* message) {
+bool TestInvocation::verifyEqual(const char* actual, const __FlashStringHelper* expected, const __FlashStringHelper* message) {
   if (!_success) return false; // TestInvocation already failed
-  return assert(strcmp_P(actual, (PGM_P)expected) == 0, message);
+  return verify(strcmp_P(actual, (PGM_P)expected) == 0, message);
 }
 
-bool TestInvocation::assertEqual(const char* actual, const char* expected, const __FlashStringHelper* message) {
+bool TestInvocation::verifyEqual(const char* actual, const char* expected, const __FlashStringHelper* message) {
   if (!_success) return false; // TestInvocation already failed
-  return assert(strcmp(actual, expected) == 0, message);
+  return verify(strcmp(actual, expected) == 0, message);
 }
 
-bool TestInvocation::assertEqual(const __FlashStringHelper* actual, const char* expected, const char* message, bool allocate) {
-  if (!_success) return false; // TestInvocation already failed
-  message = message ? message : defaultAssertEqualsMessage(actual, expected);
-  return assert(strcmp_P(expected, (PGM_P)actual) == 0, message, allocate);
-}
-
-bool TestInvocation::assertEqual(const __FlashStringHelper* actual, const __FlashStringHelper* expected, const char* message, bool allocate) {
+bool TestInvocation::verifyEqual(const __FlashStringHelper* actual, const char* expected, const char* message, bool allocate) {
   if (!_success) return false; // TestInvocation already failed
   message = message ? message : defaultAssertEqualsMessage(actual, expected);
-  return assert(flashStringEquals(actual, expected), message, allocate);
+  return verify(strcmp_P(expected, (PGM_P)actual) == 0, message, allocate);
 }
 
-bool TestInvocation::assertEqual(const __FlashStringHelper* actual, const __FlashStringHelper* expected, const __FlashStringHelper* message) {
+bool TestInvocation::verifyEqual(const __FlashStringHelper* actual, const __FlashStringHelper* expected, const char* message, bool allocate) {
   if (!_success) return false; // TestInvocation already failed
-  return assert(flashStringEquals(actual, expected), message);
+  message = message ? message : defaultAssertEqualsMessage(actual, expected);
+  return verify(flashStringEquals(actual, expected), message, allocate);
 }
 
-bool TestInvocation::assertEqual(const __FlashStringHelper* actual, const char* expected, const __FlashStringHelper* message) {
+bool TestInvocation::verifyEqual(const __FlashStringHelper* actual, const __FlashStringHelper* expected, const __FlashStringHelper* message) {
   if (!_success) return false; // TestInvocation already failed
-  return assert(strcmp_P(expected, (PGM_P)actual) == 0, message);
+  return verify(flashStringEquals(actual, expected), message);
+}
+
+bool TestInvocation::verifyEqual(const __FlashStringHelper* actual, const char* expected, const __FlashStringHelper* message) {
+  if (!_success) return false; // TestInvocation already failed
+  return verify(strcmp_P(expected, (PGM_P)actual) == 0, message);
 }
 
 char* TestInvocation::defaultAssertEqualsMessage(const char* actual, const char* expected) {

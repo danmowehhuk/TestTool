@@ -31,15 +31,15 @@ void before() {
 void testStartsAtZero(TestInvocation* t) {
   t->setName(F("Fresh fixture starts at zero"));
   // before() guarantees this even if a prior test added values
-  t->assert(acc.getSum() == 0, F("Sum should be 0"));
-  t->assert(acc.getCount() == 0, F("Count should be 0"));
+  t->verify(acc.getSum() == 0, F("Sum should be 0"));
+  t->verify(acc.getCount() == 0, F("Count should be 0"));
 }
 
 void testSingleAdd(TestInvocation* t) {
   t->setName(F("Adding one value"));
   acc.add(5);
-  t->assert(acc.getSum() == 5, F("Sum should be 5"));
-  t->assert(acc.getCount() == 1, F("Count should be 1"));
+  t->verify(acc.getSum() == 5, F("Sum should be 5"));
+  t->verify(acc.getCount() == 1, F("Count should be 1"));
 }
 
 void testMultipleAdds(TestInvocation* t) {
@@ -47,16 +47,16 @@ void testMultipleAdds(TestInvocation* t) {
   acc.add(10);
   acc.add(20);
   acc.add(30);
-  t->assert(acc.getSum() == 60, F("Sum should be 60"));
-  t->assert(acc.getCount() == 3, F("Count should be 3"));
+  t->verify(acc.getSum() == 60, F("Sum should be 60"));
+  t->verify(acc.getCount() == 3, F("Count should be 3"));
 }
 
 void testNegativeValues(TestInvocation* t) {
   t->setName(F("Adding negative values"));
   acc.add(100);
   acc.add(-40);
-  t->assert(acc.getSum() == 60, F("Sum should be 60"));
-  t->assert(acc.getCount() == 2, F("Count should be 2"));
+  t->verify(acc.getSum() == 60, F("Sum should be 60"));
+  t->verify(acc.getCount() == 2, F("Count should be 2"));
 }
 
 void setup() {

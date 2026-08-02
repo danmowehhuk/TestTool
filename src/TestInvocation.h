@@ -28,20 +28,20 @@ class TestInvocation {
      * TestInvocation has already failed, short circuit without
      * further checks
      */
-    bool assert(bool check, const char* message, bool allocate = false);
-    bool assert(bool check, const __FlashStringHelper* message);
+    bool verify(bool check, const char* message, bool allocate = false);
+    bool verify(bool check, const __FlashStringHelper* message);
 
     /*
      * Verify that two strings are equal.
      */
-    bool assertEqual(const char* actual, const char* expected, const char* message = nullptr, bool allocate = false);
-    bool assertEqual(const char* actual, const __FlashStringHelper* expected, const char* message = nullptr, bool allocate = false);
-    bool assertEqual(const char* actual, const __FlashStringHelper* expected, const __FlashStringHelper* message);
-    bool assertEqual(const char* actual, const char* expected, const __FlashStringHelper* message);
-    bool assertEqual(const __FlashStringHelper* actual, const char* expected, const char* message = nullptr, bool allocate = false);
-    bool assertEqual(const __FlashStringHelper* actual, const __FlashStringHelper* expected, const char* message = nullptr, bool allocate = false);
-    bool assertEqual(const __FlashStringHelper* actual, const __FlashStringHelper* expected, const __FlashStringHelper* message);
-    bool assertEqual(const __FlashStringHelper* actual, const char* expected, const __FlashStringHelper* message);
+    bool verifyEqual(const char* actual, const char* expected, const char* message = nullptr, bool allocate = false);
+    bool verifyEqual(const char* actual, const __FlashStringHelper* expected, const char* message = nullptr, bool allocate = false);
+    bool verifyEqual(const char* actual, const __FlashStringHelper* expected, const __FlashStringHelper* message);
+    bool verifyEqual(const char* actual, const char* expected, const __FlashStringHelper* message);
+    bool verifyEqual(const __FlashStringHelper* actual, const char* expected, const char* message = nullptr, bool allocate = false);
+    bool verifyEqual(const __FlashStringHelper* actual, const __FlashStringHelper* expected, const char* message = nullptr, bool allocate = false);
+    bool verifyEqual(const __FlashStringHelper* actual, const __FlashStringHelper* expected, const __FlashStringHelper* message);
+    bool verifyEqual(const __FlashStringHelper* actual, const char* expected, const __FlashStringHelper* message);
     char* defaultAssertEqualsMessage(const char* actual, const char* expected);
     char* defaultAssertEqualsMessage(const char* actual, const __FlashStringHelper* expected);
     char* defaultAssertEqualsMessage(const __FlashStringHelper* actual, const char* expected);

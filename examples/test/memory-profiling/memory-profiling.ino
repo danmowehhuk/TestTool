@@ -44,21 +44,21 @@ void after() {
 void testStoreAndRetrieve(TestInvocation* t) {
   t->setName(F("Store and retrieve a string"));
   cache.store("hello");
-  t->assertEqual(cache.retrieve(), "hello");
+  t->verifyEqual(cache.retrieve(), "hello");
 }
 
 void testOverwrite(TestInvocation* t) {
   t->setName(F("Overwriting frees the previous allocation"));
   cache.store("first");
   cache.store("second");
-  t->assertEqual(cache.retrieve(), "second");
+  t->verifyEqual(cache.retrieve(), "second");
 }
 
 void testClear(TestInvocation* t) {
   t->setName(F("Clear makes retrieve return empty string"));
   cache.store("something");
   cache.clear();
-  t->assertEqual(cache.retrieve(), "");
+  t->verifyEqual(cache.retrieve(), "");
 }
 
 void setup() {

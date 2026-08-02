@@ -48,23 +48,23 @@ void after() {
 void testParseSingle(TestInvocation* t) {
   t->setName(F("Parse single token"));
   tokens.parse("alpha");
-  t->assert(tokens.count() == 1, F("Should have 1 token"));
-  t->assertEqual(tokens.get(0), "alpha");
+  t->verify(tokens.count() == 1, F("Should have 1 token"));
+  t->verifyEqual(tokens.get(0), "alpha");
 }
 
 void testParseMultiple(TestInvocation* t) {
   t->setName(F("Parse three tokens"));
   tokens.parse("one,two,three");
-  t->assert(tokens.count() == 3, F("Should have 3 tokens"));
-  t->assertEqual(tokens.get(0), "one");
-  t->assertEqual(tokens.get(1), "two");
-  t->assertEqual(tokens.get(2), "three");
+  t->verify(tokens.count() == 3, F("Should have 3 tokens"));
+  t->verifyEqual(tokens.get(0), "one");
+  t->verifyEqual(tokens.get(1), "two");
+  t->verifyEqual(tokens.get(2), "three");
 }
 
 void testEmptyString(TestInvocation* t) {
   t->setName(F("Empty string yields zero tokens"));
   tokens.parse("");
-  t->assert(tokens.count() == 0, F("Should have 0 tokens"));
+  t->verify(tokens.count() == 0, F("Should have 0 tokens"));
 }
 
 void setup() {

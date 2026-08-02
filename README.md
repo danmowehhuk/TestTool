@@ -98,7 +98,7 @@ While `runTestSuite(tests)` is the simplest, there are other options when runnin
 
 ## Writing Test Functions
 
-The `TestInvocation` parameter passed into your test functions provides various `assert...` methods you can use
+The `TestInvocation` parameter passed into your test functions provides various `verify...` methods you can use
 for testing. If an assertion fails, the following assertions will not be evaluated. Here is an example of a 
 typical test function:
 
@@ -115,18 +115,18 @@ void testSomething(TestInvocation* t) {
   // Write some assertions. The message is only displayed if the assertion fails.
   // Any boolean expression will work, and the test will fail if it evaluates
   // to false
-  t->assert(thing.getSomeParam() == 1, "getSomeParam should have returned 1");
+  t->verify(thing.getSomeParam() == 1, "getSomeParam should have returned 1");
   
   // You can also use flash strings to save RAM
-  t->assert(thing.isActive(), F("Expected thing to be active"));
+  t->verify(thing.isActive(), F("Expected thing to be active"));
 
   // There are convenience functions for checking strings. You can pass any
   // combination of RAM or flash strings.
-  t->assertEqual(thing.getString(), F("foo"), "Expected 'foo'");
+  t->verifyEqual(thing.getString(), F("foo"), "Expected 'foo'");
 
   // You can leave out the message parameter and a generic 'expected A but got B'
   // message will be used by default
-  t->assertEqual(thing.getString(), "foo");
+  t->verifyEqual(thing.getString(), "foo");
 }
 
 ```
@@ -227,7 +227,7 @@ runTestSuiteShowMem(tests, nullptr, after, 5);
 
 The `examples/test/` directory contains focused example test suites, each illustrating a single concept:
 
-- `basic/` — Basic test functions, assertions, and all `assertEqual()` variants
+- `basic/` — Basic test functions, assertions, and all `verifyEqual()` variants
 - `memory-profiling/` — Using `runTestSuiteShowMem()` with `after()` to detect heap leaks
 - `test-fixtures/` — Using `before()` to reset a shared fixture between tests
 - `repeating-tests/` — Using the `repeats` parameter to amplify leaks and catch flaky behavior

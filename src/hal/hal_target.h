@@ -1,5 +1,5 @@
-#ifndef __test_hal_target_h
-#define __test_hal_target_h
+#ifndef TESTTOOL_HAL_TARGET_H
+#define TESTTOOL_HAL_TARGET_H
 
 // Derives a single "is Arduino available" macro from the full set of known
 // non-Arduino target flags, so call sites never negate target flags directly.

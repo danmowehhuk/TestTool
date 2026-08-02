@@ -1,5 +1,5 @@
-#ifndef __test_TestInvocation_h
-#define __test_TestInvocation_h
+#ifndef TESTTOOL_TESTINVOCATION_H
+#define TESTTOOL_TESTINVOCATION_H
 
 
 #include <stdint.h>

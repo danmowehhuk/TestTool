@@ -1,5 +1,5 @@
-#ifndef __test_TestToolHal_serial_h
-#define __test_TestToolHal_serial_h
+#ifndef TESTTOOL_TESTTOOLHAL_SERIAL_H
+#define TESTTOOL_TESTTOOLHAL_SERIAL_H
 
 #include "hal_target.h"
 #include "TestToolHal_progmem.h"  // for __FlashStringHelper

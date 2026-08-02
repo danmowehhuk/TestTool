@@ -1,5 +1,5 @@
-#ifndef __test_TestToolHal_progmem_h
-#define __test_TestToolHal_progmem_h
+#ifndef TESTTOOL_TESTTOOLHAL_PROGMEM_H
+#define TESTTOOL_TESTTOOLHAL_PROGMEM_H
 
 #include "hal_target.h"
 

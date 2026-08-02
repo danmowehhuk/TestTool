@@ -11,7 +11,7 @@
 
 extern char __heap_start, *__brkval;
 
-int freeMemory() {
+inline int freeMemory() {
     char top;
     if (__brkval == 0) {
         return &top - &__heap_start;
@@ -23,7 +23,7 @@ int freeMemory() {
 typedef void (*TestFunction)(TestInvocation*);
 typedef void (*PreOrPostFunction)();
 
-bool printAndCheckResult(TestInvocation* t) {
+inline bool printAndCheckResult(TestInvocation* t) {
   const char* name = t->getName();
   size_t nameLength = t->getNameLength();
   const uint8_t nameWidth = 48;
@@ -61,7 +61,7 @@ bool printAndCheckResult(TestInvocation* t) {
   return t->passed();
 }
 
-bool invokeTest(TestFunction test, uint8_t testNum, PreOrPostFunction before, PreOrPostFunction after) {
+inline bool invokeTest(TestFunction test, uint8_t testNum, PreOrPostFunction before, PreOrPostFunction after) {
   TestInvocation t(testNum);
   if (before) before();
   test(&t);

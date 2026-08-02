@@ -2,7 +2,11 @@
 #define __test_TestTool_h
 
 
-#include <Arduino.h>
+#include <stdint.h>
+#include <stddef.h>
+#include "hal/hal_target.h"
+#include "hal/TestToolHal_serial.h"
+#include "hal/TestToolHal_progmem.h"
 #include "TestInvocation.h"
 
 extern char __heap_start, *__brkval;
@@ -24,33 +28,33 @@ bool printAndCheckResult(TestInvocation* t) {
   size_t nameLength = t->getNameLength();
   const uint8_t nameWidth = 48;
 
-  Serial.print(F("  "));
+  TestToolHal::print(TESTTOOL_HAL_FLASH_STR("  "));
   for (size_t i = 0; i < nameWidth; i++) {
     if (i < nameLength) {
       if (t->isNamePmem()) {
-        Serial.print((char)pgm_read_byte(&name[i]));
+        TestToolHal::print((char)pgm_read_byte(&name[i]));
       } else {
-        Serial.print(name[i]);
+        TestToolHal::print(name[i]);
       }
     } else if (i == nameLength) {
-      Serial.print(F("..."));
+      TestToolHal::print(TESTTOOL_HAL_FLASH_STR("..."));
       i += 2;
     } else {
-      Serial.print(F(" "));
+      TestToolHal::print(TESTTOOL_HAL_FLASH_STR(" "));
     }
   }
-  Serial.print(F(" "));
+  TestToolHal::print(TESTTOOL_HAL_FLASH_STR(" "));
   if (t->passed()) {
-    Serial.println(F("PASSED"));
+    TestToolHal::println(TESTTOOL_HAL_FLASH_STR("PASSED"));
   } else {
-    Serial.println(F("FAILED"));
+    TestToolHal::println(TESTTOOL_HAL_FLASH_STR("FAILED"));
     char* message = t->getMessage();
     if (message) {
-      Serial.print(F("    FAILED - "));
+      TestToolHal::print(TESTTOOL_HAL_FLASH_STR("    FAILED - "));
       if (t->isMessagePmem()) {
-        Serial.println(reinterpret_cast<const __FlashStringHelper*>(message));
+        TestToolHal::println(reinterpret_cast<const __FlashStringHelper*>(message));
       } else {
-        Serial.println(message);
+        TestToolHal::println(message);
       }
     }
   }
@@ -68,7 +72,7 @@ bool invokeTest(TestFunction test, uint8_t testNum, PreOrPostFunction before, Pr
 template <size_t N>
 void runTestSuite(TestFunction (&tests)[N], PreOrPostFunction before, 
           PreOrPostFunction after, bool showMem, uint8_t repeats = 1) {
-  Serial.println(F("Running test suite..."));
+  TestToolHal::println(TESTTOOL_HAL_FLASH_STR("Running test suite..."));
   bool success = true;
   for (int i = 0; i < N; i++) {
     for (int r = 0; r < repeats; r++) {
@@ -76,17 +80,17 @@ void runTestSuite(TestFunction (&tests)[N], PreOrPostFunction before,
       if (showMem) memBefore = freeMemory();
       success &= invokeTest(tests[i], i, before, after);
       if (showMem) {
-        Serial.print(F("          Free mem before: "));
-        Serial.print(memBefore);
-        Serial.print(F(" after: "));
-        Serial.println(freeMemory());
+        TestToolHal::print(TESTTOOL_HAL_FLASH_STR("          Free mem before: "));
+        TestToolHal::print(memBefore);
+        TestToolHal::print(TESTTOOL_HAL_FLASH_STR(" after: "));
+        TestToolHal::println(freeMemory());
       }
     }
   }
   if (success) {
-    Serial.println(F("All tests passed!"));
+    TestToolHal::println(TESTTOOL_HAL_FLASH_STR("All tests passed!"));
   } else {
-    Serial.println(F("Test suite failed!"));
+    TestToolHal::println(TESTTOOL_HAL_FLASH_STR("Test suite failed!"));
   }
 }
 

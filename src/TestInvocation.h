@@ -2,7 +2,9 @@
 #define __test_TestInvocation_h
 
 
-#include <Arduino.h>
+#include <stdint.h>
+#include "hal/hal_target.h"
+#include "hal/TestToolHal_progmem.h"
 
 class TestInvocation {
 

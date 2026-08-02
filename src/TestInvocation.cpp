@@ -1,8 +1,10 @@
 #include "TestInvocation.h"
+#include <stdlib.h>
+#include <string.h>
 
 TestInvocation::TestInvocation(uint8_t testNum) {
   static char defaultNameBuffer[32];
-  char* format = reinterpret_cast<const char*>(F("Test case %d"));
+  char* format = reinterpret_cast<const char*>(TESTTOOL_HAL_FLASH_STR("Test case %d"));
   snprintf_P(defaultNameBuffer, sizeof(defaultNameBuffer), format, testNum);
   _testName = defaultNameBuffer;
 }
@@ -108,11 +110,11 @@ bool TestInvocation::assertEqual(const __FlashStringHelper* actual, const char* 
 }
 
 char* TestInvocation::defaultAssertEqualsMessage(const char* actual, const char* expected) {
-  const char* prefix = toRAM(F("Expected '"));
-  const char* middle = toRAM(F("' but got '"));
-  const char* end = toRAM(F("'"));
+  const char* prefix = toRAM(TESTTOOL_HAL_FLASH_STR("Expected '"));
+  const char* middle = toRAM(TESTTOOL_HAL_FLASH_STR("' but got '"));
+  const char* end = toRAM(TESTTOOL_HAL_FLASH_STR("'"));
   static char message[64];
-  char* format = reinterpret_cast<const char*>(F("%s%s%s%s%s"));
+  char* format = reinterpret_cast<const char*>(TESTTOOL_HAL_FLASH_STR("%s%s%s%s%s"));
   snprintf_P(message, sizeof(message), format, prefix, expected, middle, actual, end);
   delete[] prefix;
   delete[] middle;

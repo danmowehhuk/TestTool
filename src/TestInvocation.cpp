@@ -4,16 +4,24 @@
 
 TestInvocation::TestInvocation(uint8_t testNum) {
   static char defaultNameBuffer[32];
-  char* format = reinterpret_cast<const char*>(TESTTOOL_HAL_FLASH_STR("Test case %d"));
+  const char* format = reinterpret_cast<const char*>(TESTTOOL_HAL_FLASH_STR("Test case %d"));
   snprintf_P(defaultNameBuffer, sizeof(defaultNameBuffer), format, testNum);
   _testName = defaultNameBuffer;
 }
 
 TestInvocation::~TestInvocation() {
-  if (_message && _ownsMessage) {
-    free(_message);
-  }
+  freeMessage();
   _message = nullptr;
+}
+
+void TestInvocation::freeMessage() {
+  // _ownsMessage is only ever set true when _message was allocated via
+  // malloc/strdup (see assert/fail overloads with allocate=true), so this
+  // const_cast is the one place in the class where freeing through the
+  // const-qualified _message pointer is actually safe.
+  if (_message && _ownsMessage) {
+    free(const_cast<char*>(_message));
+  }
 }
 
 void TestInvocation::setName(const char* name) {
@@ -45,9 +53,9 @@ const char* TestInvocation::getName() const {
   return _testName;
 }
 
-bool TestInvocation::assert(bool check, const char* message, bool allocate = false) {
+bool TestInvocation::assert(bool check, const char* message, bool allocate) {
   if (!_success) return false; // TestInvocation already failed
-  if (_message && _ownsMessage) free(_message);
+  freeMessage();
   _message = message;
   _ownsMessage = allocate;
   _isMessagePmem = false;
@@ -57,7 +65,7 @@ bool TestInvocation::assert(bool check, const char* message, bool allocate = fal
 
 bool TestInvocation::assert(bool check, const __FlashStringHelper* message) {
   if (!_success) return false; // TestInvocation already failed
-  if (_message && _ownsMessage) free(_message);
+  freeMessage();
   _message = reinterpret_cast<const char*>(message);
   _ownsMessage = false;
   _isMessagePmem = true;
@@ -65,19 +73,19 @@ bool TestInvocation::assert(bool check, const __FlashStringHelper* message) {
   return check;
 }
 
-bool TestInvocation::assertEqual(const char* actual, const char* expected, const char* message = nullptr, bool allocate = false) {
+bool TestInvocation::assertEqual(const char* actual, const char* expected, const char* message, bool allocate) {
   if (!_success) return false; // TestInvocation already failed
   message = message ? message : defaultAssertEqualsMessage(actual, expected);
   return assert(strcmp(actual, expected) == 0, message, allocate);
 }
 
-bool TestInvocation::assertEqual(const char* actual, const __FlashStringHelper* expected, const char* message = nullptr, bool allocate = false) {
+bool TestInvocation::assertEqual(const char* actual, const __FlashStringHelper* expected, const char* message, bool allocate) {
   if (!_success) return false; // TestInvocation already failed
   message = message ? message : defaultAssertEqualsMessage(actual, expected);
   return assert(strcmp_P(actual, (PGM_P)expected) == 0, message, allocate);
 }
 
-bool TestInvocation::assertEqual(const char* actual, const __FlashStringHelper* expected, __FlashStringHelper* message) {
+bool TestInvocation::assertEqual(const char* actual, const __FlashStringHelper* expected, const __FlashStringHelper* message) {
   if (!_success) return false; // TestInvocation already failed
   return assert(strcmp_P(actual, (PGM_P)expected) == 0, message);
 }
@@ -87,19 +95,19 @@ bool TestInvocation::assertEqual(const char* actual, const char* expected, const
   return assert(strcmp(actual, expected) == 0, message);
 }
 
-bool TestInvocation::assertEqual(const __FlashStringHelper* actual, const char* expected, const char* message = nullptr, bool allocate = false) {
+bool TestInvocation::assertEqual(const __FlashStringHelper* actual, const char* expected, const char* message, bool allocate) {
   if (!_success) return false; // TestInvocation already failed
   message = message ? message : defaultAssertEqualsMessage(actual, expected);
   return assert(strcmp_P(expected, (PGM_P)actual) == 0, message, allocate);
 }
 
-bool TestInvocation::assertEqual(const __FlashStringHelper* actual, const __FlashStringHelper* expected, const char* message = nullptr, bool allocate = false) {
+bool TestInvocation::assertEqual(const __FlashStringHelper* actual, const __FlashStringHelper* expected, const char* message, bool allocate) {
   if (!_success) return false; // TestInvocation already failed
   message = message ? message : defaultAssertEqualsMessage(actual, expected);
   return assert(flashStringEquals(actual, expected), message, allocate);
 }
 
-bool TestInvocation::assertEqual(const __FlashStringHelper* actual, const __FlashStringHelper* expected, __FlashStringHelper* message) {
+bool TestInvocation::assertEqual(const __FlashStringHelper* actual, const __FlashStringHelper* expected, const __FlashStringHelper* message) {
   if (!_success) return false; // TestInvocation already failed
   return assert(flashStringEquals(actual, expected), message);
 }
@@ -114,7 +122,7 @@ char* TestInvocation::defaultAssertEqualsMessage(const char* actual, const char*
   const char* middle = toRAM(TESTTOOL_HAL_FLASH_STR("' but got '"));
   const char* end = toRAM(TESTTOOL_HAL_FLASH_STR("'"));
   static char message[64];
-  char* format = reinterpret_cast<const char*>(TESTTOOL_HAL_FLASH_STR("%s%s%s%s%s"));
+  const char* format = reinterpret_cast<const char*>(TESTTOOL_HAL_FLASH_STR("%s%s%s%s%s"));
   snprintf_P(message, sizeof(message), format, prefix, expected, middle, actual, end);
   delete[] prefix;
   delete[] middle;
@@ -166,16 +174,16 @@ char* TestInvocation::toRAM(const __FlashStringHelper* str_P) {
   size_t len = strlen_P(reinterpret_cast<const char*>(str_P));
   char* str = new char[len + 1];
   strncpy_P(str, reinterpret_cast<const char*>(str_P), len);
-  str[len] = '\0'; 
+  str[len] = '\0';
   return str;
 }
 
 void TestInvocation::fail() {
-  _success = false;  
+  _success = false;
 }
 
-void TestInvocation::fail(const char* message, bool allocate = false) {
-  if (_message && _ownsMessage) free(_message);
+void TestInvocation::fail(const char* message, bool allocate) {
+  freeMessage();
   _message = allocate ? strdup(message) : message;
   _ownsMessage = allocate;
   _isMessagePmem = false;
@@ -183,7 +191,7 @@ void TestInvocation::fail(const char* message, bool allocate = false) {
 }
 
 void TestInvocation::fail(const __FlashStringHelper* message) {
-  if (_message && _ownsMessage) free(_message);
+  freeMessage();
   _message = reinterpret_cast<const char*>(message);
   _isMessagePmem = true;
   _ownsMessage = false;

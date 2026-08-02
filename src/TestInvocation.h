@@ -24,7 +24,7 @@ class TestInvocation {
     bool isNamePmem();
 
     /*
-     * Verify that 'check' evaluates to true or fail. If the 
+     * Verify that 'check' evaluates to true or fail. If the
      * TestInvocation has already failed, short circuit without
      * further checks
      */
@@ -36,11 +36,11 @@ class TestInvocation {
      */
     bool assertEqual(const char* actual, const char* expected, const char* message = nullptr, bool allocate = false);
     bool assertEqual(const char* actual, const __FlashStringHelper* expected, const char* message = nullptr, bool allocate = false);
-    bool assertEqual(const char* actual, const __FlashStringHelper* expected, __FlashStringHelper* message);
+    bool assertEqual(const char* actual, const __FlashStringHelper* expected, const __FlashStringHelper* message);
     bool assertEqual(const char* actual, const char* expected, const __FlashStringHelper* message);
     bool assertEqual(const __FlashStringHelper* actual, const char* expected, const char* message = nullptr, bool allocate = false);
     bool assertEqual(const __FlashStringHelper* actual, const __FlashStringHelper* expected, const char* message = nullptr, bool allocate = false);
-    bool assertEqual(const __FlashStringHelper* actual, const __FlashStringHelper* expected, __FlashStringHelper* message);
+    bool assertEqual(const __FlashStringHelper* actual, const __FlashStringHelper* expected, const __FlashStringHelper* message);
     bool assertEqual(const __FlashStringHelper* actual, const char* expected, const __FlashStringHelper* message);
     char* defaultAssertEqualsMessage(const char* actual, const char* expected);
     char* defaultAssertEqualsMessage(const char* actual, const __FlashStringHelper* expected);
@@ -64,6 +64,7 @@ class TestInvocation {
     TestInvocation(TestInvocation &t) = delete;
     bool flashStringEquals(const __FlashStringHelper* str1, const __FlashStringHelper* str2);
     char* toRAM(const __FlashStringHelper* str_P);
+    void freeMessage();
     bool _success = true;
     const char* _testName = nullptr;
     const char* _message = nullptr;

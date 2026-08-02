@@ -48,7 +48,7 @@ bool printAndCheckResult(TestInvocation* t) {
     TestToolHal::println(TESTTOOL_HAL_FLASH_STR("PASSED"));
   } else {
     TestToolHal::println(TESTTOOL_HAL_FLASH_STR("FAILED"));
-    char* message = t->getMessage();
+    const char* message = t->getMessage();
     if (message) {
       TestToolHal::print(TESTTOOL_HAL_FLASH_STR("    FAILED - "));
       if (t->isMessagePmem()) {

@@ -7,18 +7,8 @@
 #include "hal/hal_target.h"
 #include "hal/TestToolHal_serial.h"
 #include "hal/TestToolHal_progmem.h"
+#include "hal/TestToolHal_memory.h"
 #include "TestInvocation.h"
-
-extern char __heap_start, *__brkval;
-
-inline int freeMemory() {
-    char top;
-    if (__brkval == 0) {
-        return &top - &__heap_start;
-    } else {
-        return &top - __brkval;
-    }
-}
 
 typedef void (*TestFunction)(TestInvocation*);
 typedef void (*PreOrPostFunction)();
@@ -77,13 +67,13 @@ void runTestSuite(TestFunction (&tests)[N], PreOrPostFunction before,
   for (int i = 0; i < N; i++) {
     for (int r = 0; r < repeats; r++) {
       int memBefore = 0;
-      if (showMem) memBefore = freeMemory();
+      if (showMem) memBefore = TestToolHal::freeMemory();
       success &= invokeTest(tests[i], i, before, after);
       if (showMem) {
         TestToolHal::print(TESTTOOL_HAL_FLASH_STR("          Free mem before: "));
         TestToolHal::print(memBefore);
         TestToolHal::print(TESTTOOL_HAL_FLASH_STR(" after: "));
-        TestToolHal::println(freeMemory());
+        TestToolHal::println(TestToolHal::freeMemory());
       }
     }
   }

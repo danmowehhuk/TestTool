@@ -60,8 +60,8 @@ inline bool invokeTest(TestFunction test, uint8_t testNum, PreOrPostFunction bef
 }
 
 template <size_t N>
-void runTestSuite(TestFunction (&tests)[N], PreOrPostFunction before, 
-          PreOrPostFunction after, bool showMem, uint8_t repeats = 1) {
+void runTestSuite(TestFunction (&tests)[N], PreOrPostFunction before = nullptr,
+          PreOrPostFunction after = nullptr, uint8_t repeats = 1, bool showMem = false) {
   TestToolHal::println(TESTTOOL_HAL_FLASH_STR("Running test suite..."));
   bool success = true;
   for (int i = 0; i < N; i++) {
@@ -85,25 +85,9 @@ void runTestSuite(TestFunction (&tests)[N], PreOrPostFunction before,
 }
 
 template <size_t N>
-void runTestSuite(TestFunction (&tests)[N], uint8_t repeats = 1) {
-  runTestSuite(tests, nullptr, nullptr, false, repeats);
-}
-
-template <size_t N>
-void runTestSuite(TestFunction (&tests)[N], PreOrPostFunction before, 
-          PreOrPostFunction after, uint8_t repeats = 1) {
-  runTestSuite(tests, before, after, false, repeats);
-}
-
-template <size_t N>
-void runTestSuiteShowMem(TestFunction (&tests)[N], uint8_t repeats = 1) {
-  runTestSuite(tests, nullptr, nullptr, true, repeats);
-}
-
-template <size_t N>
-void runTestSuiteShowMem(TestFunction (&tests)[N], PreOrPostFunction before, 
-          PreOrPostFunction after, uint8_t repeats = 1) {
-  runTestSuite(tests, before, after, true, repeats);
+void runTestSuiteShowMem(TestFunction (&tests)[N], PreOrPostFunction before = nullptr,
+          PreOrPostFunction after = nullptr, uint8_t repeats = 1) {
+  runTestSuite(tests, before, after, repeats, true);
 }
 
 

@@ -82,14 +82,12 @@ void setup() {
 
 While `runTestSuite(tests)` is the simplest, there are other options when running your test suite.
 
-- `runTestSuite(tests, 3)` - Runs each test 3 times if you want to check for inconsistent results.
 - `runTestSuite(tests, beforeFunction, afterFunction`) - You can provide functions of the form\
   `void myFunction()` to be run before and after each test. If you only have one, you can pass\
   `nullptr` for the other one.
 - `runTestSuite(tests, beforeFunction, afterFunction, 3)` - Same as above, but runs each test 3 times.
 - `runTestSuiteShowMem(tests)` - After each test, prints out what the free memory was before and\
   after. This is very useful for catching memory leaks.
-- `runTestSuiteShowMem(tests, 3)` - Runs each test 3x, showing the memory status after each test run.
 - `runTestSuiteShowMem(tests, beforeFunction, afterFunction)` - Same as earlier, but also printing\
   the memory status.
 - `runTestSuiteShowMem(tests, beforeFunction, afterFunction, 3)` - Same as above, but runs each test\

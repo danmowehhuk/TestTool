@@ -61,7 +61,8 @@ class TestInvocation {
 
   private:
     TestInvocation() = delete;
-    TestInvocation(TestInvocation &t) = delete;
+    TestInvocation(const TestInvocation&) = delete;
+    TestInvocation& operator=(const TestInvocation&) = delete;
     bool flashStringEquals(const __FlashStringHelper* str1, const __FlashStringHelper* str2);
     char* toRAM(const __FlashStringHelper* str_P);
     void freeMessage();

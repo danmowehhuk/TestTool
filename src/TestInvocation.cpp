@@ -16,7 +16,7 @@ TestInvocation::~TestInvocation() {
 
 void TestInvocation::freeMessage() {
   // _ownsMessage is only ever set true when _message was allocated via
-  // malloc/strdup (see assert/fail overloads with allocate=true), so this
+  // malloc/strdup (see verify/fail overloads with allocate=true), so this
   // const_cast is the one place in the class where freeing through the
   // const-qualified _message pointer is actually safe.
   if (_message && _ownsMessage) {
@@ -55,56 +55,76 @@ const char* TestInvocation::getName() const {
 
 bool TestInvocation::verify(bool check, const char* message, bool allocate) {
   if (!_success) return false; // TestInvocation already failed
-  freeMessage();
-  _message = message;
-  _ownsMessage = allocate;
-  _isMessagePmem = false;
-  if (!check) fail();
+  if (!check) {
+    freeMessage();
+    _message = allocate ? strdup(message) : message;
+    _ownsMessage = allocate;
+    _isMessagePmem = false;
+    fail();
+  }
   return check;
 }
 
 bool TestInvocation::verify(bool check, const __FlashStringHelper* message) {
   if (!_success) return false; // TestInvocation already failed
-  freeMessage();
-  _message = reinterpret_cast<const char*>(message);
-  _ownsMessage = false;
-  _isMessagePmem = true;
-  if (!check) fail();
+  if (!check) {
+    freeMessage();
+    _message = reinterpret_cast<const char*>(message);
+    _ownsMessage = false;
+    _isMessagePmem = true;
+    fail();
+  }
   return check;
+}
+
+bool TestInvocation::ramStringsEqual(const char* a, const char* b) {
+  // Both null is treated as equal; exactly one null is never equal to a
+  // real string. Avoids undefined behavior from strcmp(nullptr, ...).
+  if (!a || !b) return a == b;
+  return strcmp(a, b) == 0;
+}
+
+bool TestInvocation::ramFlashEqual(const char* ramStr, const __FlashStringHelper* flashStr) {
+  if (!ramStr || !flashStr) return false;
+  return strcmp_P(ramStr, reinterpret_cast<PGM_P>(flashStr)) == 0;
 }
 
 bool TestInvocation::verifyEqual(const char* actual, const char* expected, const char* message, bool allocate) {
   if (!_success) return false; // TestInvocation already failed
-  message = message ? message : defaultAssertEqualsMessage(actual, expected);
-  return verify(strcmp(actual, expected) == 0, message, allocate);
+  bool eq = ramStringsEqual(actual, expected);
+  if (!eq && !message) message = defaultVerifyEqualsMessage(actual, expected);
+  return verify(eq, message, allocate);
 }
 
 bool TestInvocation::verifyEqual(const char* actual, const __FlashStringHelper* expected, const char* message, bool allocate) {
   if (!_success) return false; // TestInvocation already failed
-  message = message ? message : defaultAssertEqualsMessage(actual, expected);
-  return verify(strcmp_P(actual, (PGM_P)expected) == 0, message, allocate);
+  bool eq = ramFlashEqual(actual, expected);
+  if (!eq && !message) message = defaultVerifyEqualsMessage(actual, expected);
+  return verify(eq, message, allocate);
 }
 
 bool TestInvocation::verifyEqual(const char* actual, const __FlashStringHelper* expected, const __FlashStringHelper* message) {
   if (!_success) return false; // TestInvocation already failed
-  return verify(strcmp_P(actual, (PGM_P)expected) == 0, message);
+  return verify(ramFlashEqual(actual, expected), message);
 }
 
 bool TestInvocation::verifyEqual(const char* actual, const char* expected, const __FlashStringHelper* message) {
   if (!_success) return false; // TestInvocation already failed
-  return verify(strcmp(actual, expected) == 0, message);
+  return verify(ramStringsEqual(actual, expected), message);
 }
 
 bool TestInvocation::verifyEqual(const __FlashStringHelper* actual, const char* expected, const char* message, bool allocate) {
   if (!_success) return false; // TestInvocation already failed
-  message = message ? message : defaultAssertEqualsMessage(actual, expected);
-  return verify(strcmp_P(expected, (PGM_P)actual) == 0, message, allocate);
+  bool eq = ramFlashEqual(expected, actual);
+  if (!eq && !message) message = defaultVerifyEqualsMessage(actual, expected);
+  return verify(eq, message, allocate);
 }
 
 bool TestInvocation::verifyEqual(const __FlashStringHelper* actual, const __FlashStringHelper* expected, const char* message, bool allocate) {
   if (!_success) return false; // TestInvocation already failed
-  message = message ? message : defaultAssertEqualsMessage(actual, expected);
-  return verify(flashStringEquals(actual, expected), message, allocate);
+  bool eq = flashStringEquals(actual, expected);
+  if (!eq && !message) message = defaultVerifyEqualsMessage(actual, expected);
+  return verify(eq, message, allocate);
 }
 
 bool TestInvocation::verifyEqual(const __FlashStringHelper* actual, const __FlashStringHelper* expected, const __FlashStringHelper* message) {
@@ -114,42 +134,36 @@ bool TestInvocation::verifyEqual(const __FlashStringHelper* actual, const __Flas
 
 bool TestInvocation::verifyEqual(const __FlashStringHelper* actual, const char* expected, const __FlashStringHelper* message) {
   if (!_success) return false; // TestInvocation already failed
-  return verify(strcmp_P(expected, (PGM_P)actual) == 0, message);
+  return verify(ramFlashEqual(expected, actual), message);
 }
 
-char* TestInvocation::defaultAssertEqualsMessage(const char* actual, const char* expected) {
-  const char* prefix = toRAM(TESTTOOL_HAL_FLASH_STR("Expected '"));
-  const char* middle = toRAM(TESTTOOL_HAL_FLASH_STR("' but got '"));
-  const char* end = toRAM(TESTTOOL_HAL_FLASH_STR("'"));
+char* TestInvocation::defaultVerifyEqualsMessage(const char* actual, const char* expected) {
   static char message[64];
-  const char* format = reinterpret_cast<const char*>(TESTTOOL_HAL_FLASH_STR("%s%s%s%s%s"));
-  snprintf_P(message, sizeof(message), format, prefix, expected, middle, actual, end);
-  delete[] prefix;
-  delete[] middle;
-  delete[] end;
+  const char* format = reinterpret_cast<const char*>(TESTTOOL_HAL_FLASH_STR("Expected '%s' but got '%s'"));
+  snprintf_P(message, sizeof(message), format, expected ? expected : "<null>", actual ? actual : "<null>");
   return message;
 }
 
-char* TestInvocation::defaultAssertEqualsMessage(const char* actual, const __FlashStringHelper* expected) {
+char* TestInvocation::defaultVerifyEqualsMessage(const char* actual, const __FlashStringHelper* expected) {
   char* expectedRAM = toRAM(expected);
-  char* message = defaultAssertEqualsMessage(actual, expectedRAM);
-  delete[] expectedRAM;
+  char* message = defaultVerifyEqualsMessage(actual, expectedRAM);
+  free(expectedRAM);
   return message;
 }
 
-char* TestInvocation::defaultAssertEqualsMessage(const __FlashStringHelper* actual, const char* expected) {
+char* TestInvocation::defaultVerifyEqualsMessage(const __FlashStringHelper* actual, const char* expected) {
   char* actualRAM = toRAM(actual);
-  char* message = defaultAssertEqualsMessage(actualRAM, expected);
-  delete[] actualRAM;
+  char* message = defaultVerifyEqualsMessage(actualRAM, expected);
+  free(actualRAM);
   return message;
 }
 
-char* TestInvocation::defaultAssertEqualsMessage(const __FlashStringHelper* actual, const __FlashStringHelper* expected) {
+char* TestInvocation::defaultVerifyEqualsMessage(const __FlashStringHelper* actual, const __FlashStringHelper* expected) {
   char* actualRAM = toRAM(actual);
   char* expectedRAM = toRAM(expected);
-  char* message = defaultAssertEqualsMessage(actualRAM, expectedRAM);
-  delete[] actualRAM;
-  delete[] expectedRAM;
+  char* message = defaultVerifyEqualsMessage(actualRAM, expectedRAM);
+  free(actualRAM);
+  free(expectedRAM);
   return message;
 }
 
@@ -172,7 +186,8 @@ bool TestInvocation::flashStringEquals(const __FlashStringHelper* str1, const __
 char* TestInvocation::toRAM(const __FlashStringHelper* str_P) {
   if (!str_P) return nullptr;
   size_t len = strlen_P(reinterpret_cast<const char*>(str_P));
-  char* str = new char[len + 1];
+  char* str = static_cast<char*>(malloc(len + 1));
+  if (!str) return nullptr;
   strncpy_P(str, reinterpret_cast<const char*>(str_P), len);
   str[len] = '\0';
   return str;

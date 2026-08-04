@@ -26,13 +26,20 @@ class TestInvocation {
     /*
      * Verify that 'check' evaluates to true or fail. If the
      * TestInvocation has already failed, short circuit without
-     * further checks
+     * further checks. On failure, 'message' is copied when allocate
+     * is true (the caller may free/reuse its own buffer immediately
+     * after the call returns) and stored as-is when allocate is
+     * false (the caller must keep the pointer valid - e.g. a string
+     * literal - for the lifetime of this TestInvocation). A passing
+     * check never touches or stores 'message'.
      */
     bool verify(bool check, const char* message, bool allocate = false);
     bool verify(bool check, const __FlashStringHelper* message);
 
     /*
-     * Verify that two strings are equal.
+     * Verify that two strings are equal. A null actual/expected RAM
+     * string is never equal to a non-null one; two null RAM strings
+     * are considered equal.
      */
     bool verifyEqual(const char* actual, const char* expected, const char* message = nullptr, bool allocate = false);
     bool verifyEqual(const char* actual, const __FlashStringHelper* expected, const char* message = nullptr, bool allocate = false);
@@ -42,10 +49,6 @@ class TestInvocation {
     bool verifyEqual(const __FlashStringHelper* actual, const __FlashStringHelper* expected, const char* message = nullptr, bool allocate = false);
     bool verifyEqual(const __FlashStringHelper* actual, const __FlashStringHelper* expected, const __FlashStringHelper* message);
     bool verifyEqual(const __FlashStringHelper* actual, const char* expected, const __FlashStringHelper* message);
-    char* defaultAssertEqualsMessage(const char* actual, const char* expected);
-    char* defaultAssertEqualsMessage(const char* actual, const __FlashStringHelper* expected);
-    char* defaultAssertEqualsMessage(const __FlashStringHelper* actual, const char* expected);
-    char* defaultAssertEqualsMessage(const __FlashStringHelper* actual, const __FlashStringHelper* expected);
 
     /*
      * Force the TestInvocation to fail
@@ -64,7 +67,13 @@ class TestInvocation {
     TestInvocation(const TestInvocation&) = delete;
     TestInvocation& operator=(const TestInvocation&) = delete;
     bool flashStringEquals(const __FlashStringHelper* str1, const __FlashStringHelper* str2);
+    bool ramStringsEqual(const char* a, const char* b);
+    bool ramFlashEqual(const char* ramStr, const __FlashStringHelper* flashStr);
     char* toRAM(const __FlashStringHelper* str_P);
+    char* defaultVerifyEqualsMessage(const char* actual, const char* expected);
+    char* defaultVerifyEqualsMessage(const char* actual, const __FlashStringHelper* expected);
+    char* defaultVerifyEqualsMessage(const __FlashStringHelper* actual, const char* expected);
+    char* defaultVerifyEqualsMessage(const __FlashStringHelper* actual, const __FlashStringHelper* expected);
     void freeMessage();
     bool _success = true;
     const char* _testName = nullptr;

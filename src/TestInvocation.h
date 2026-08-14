@@ -2,7 +2,17 @@
 #define TESTTOOL_TESTINVOCATION_H
 
 
-#include <Arduino.h>
+#include "hal/FlashStr.h"
+
+#ifdef NO_ARDUINO
+// On Arduino these come in transitively via Arduino.h. Off Arduino, nothing
+// else pulls them in.
+#include <stdint.h>
+#include <stddef.h>
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
+#endif
 
 class TestInvocation {
 
@@ -15,7 +25,7 @@ class TestInvocation {
      * name up to 48 characters in length
      */
     void setName(const char* name);
-    void setName(const __FlashStringHelper* name);
+    void setName(const FlashStr* name);
 
     const char* getName() const;
     uint8_t getNameLength();
@@ -27,26 +37,26 @@ class TestInvocation {
      * further checks
      */
     void verify(bool check, const char* message, bool allocate = false);
-    void verify(bool check, const __FlashStringHelper* message);
+    void verify(bool check, const FlashStr* message);
 
     /*
      * Verify that two strings are equal.
      */
     void verifyEqual(const char* actual, const char* expected, const char* message = nullptr, bool allocate = false);
-    void verifyEqual(const char* actual, const __FlashStringHelper* expected, const char* message = nullptr, bool allocate = false);
-    void verifyEqual(const char* actual, const __FlashStringHelper* expected, const __FlashStringHelper* message);
-    void verifyEqual(const char* actual, const char* expected, const __FlashStringHelper* message);
-    void verifyEqual(const __FlashStringHelper* actual, const char* expected, const char* message = nullptr, bool allocate = false);
-    void verifyEqual(const __FlashStringHelper* actual, const __FlashStringHelper* expected, const char* message = nullptr, bool allocate = false);
-    void verifyEqual(const __FlashStringHelper* actual, const __FlashStringHelper* expected, const __FlashStringHelper* message);
-    void verifyEqual(const __FlashStringHelper* actual, const char* expected, const __FlashStringHelper* message);
+    void verifyEqual(const char* actual, const FlashStr* expected, const char* message = nullptr, bool allocate = false);
+    void verifyEqual(const char* actual, const FlashStr* expected, const FlashStr* message);
+    void verifyEqual(const char* actual, const char* expected, const FlashStr* message);
+    void verifyEqual(const FlashStr* actual, const char* expected, const char* message = nullptr, bool allocate = false);
+    void verifyEqual(const FlashStr* actual, const FlashStr* expected, const char* message = nullptr, bool allocate = false);
+    void verifyEqual(const FlashStr* actual, const FlashStr* expected, const FlashStr* message);
+    void verifyEqual(const FlashStr* actual, const char* expected, const FlashStr* message);
 
     /*
      * Force the TestInvocation to fail
      */
     void fail();
     void fail(const char* message, bool allocate = false);
-    void fail(const __FlashStringHelper* message);
+    void fail(const FlashStr* message);
 
     bool passed();
 
@@ -57,12 +67,12 @@ class TestInvocation {
     TestInvocation() = delete;
     TestInvocation(const TestInvocation&) = delete;
     TestInvocation& operator=(const TestInvocation&) = delete;
-    bool flashStringEquals(const __FlashStringHelper* str1, const __FlashStringHelper* str2);
-    char* toRAM(const __FlashStringHelper* str_P);
+    bool flashStringEquals(const FlashStr* str1, const FlashStr* str2);
+    char* toRAM(const FlashStr* str_P);
     char* defaultVerifyEqualsMessage(const char* actual, const char* expected);
-    char* defaultVerifyEqualsMessage(const char* actual, const __FlashStringHelper* expected);
-    char* defaultVerifyEqualsMessage(const __FlashStringHelper* actual, const char* expected);
-    char* defaultVerifyEqualsMessage(const __FlashStringHelper* actual, const __FlashStringHelper* expected);
+    char* defaultVerifyEqualsMessage(const char* actual, const FlashStr* expected);
+    char* defaultVerifyEqualsMessage(const FlashStr* actual, const char* expected);
+    char* defaultVerifyEqualsMessage(const FlashStr* actual, const FlashStr* expected);
     void freeMessage();
     bool _success = true;
     const char* _testName = nullptr;

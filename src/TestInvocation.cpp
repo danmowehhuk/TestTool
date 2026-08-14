@@ -16,7 +16,7 @@ void TestInvocation::setName(const char* name) {
   _isNamePmem = false;
 }
 
-void TestInvocation::setName(const __FlashStringHelper* name) {
+void TestInvocation::setName(const FlashStr* name) {
   _testName = reinterpret_cast<const char*>(name);
   _isNamePmem = true;
 }
@@ -57,7 +57,7 @@ void TestInvocation::verify(bool check, const char* message, bool allocate) {
   fail();
 }
 
-void TestInvocation::verify(bool check, const __FlashStringHelper* message) {
+void TestInvocation::verify(bool check, const FlashStr* message) {
   if (!_success) return; // TestInvocation already failed
   freeMessage();
   if (check) return; // passing check - don't hold on to a message for a later bare fail()
@@ -79,7 +79,7 @@ void TestInvocation::verifyEqual(const char* actual, const char* expected, const
   verify(eq, message, allocate);
 }
 
-void TestInvocation::verifyEqual(const char* actual, const __FlashStringHelper* expected, const char* message, bool allocate) {
+void TestInvocation::verifyEqual(const char* actual, const FlashStr* expected, const char* message, bool allocate) {
   if (!_success) return; // TestInvocation already failed
   bool eq = actual && strcmp_P(actual, reinterpret_cast<PGM_P>(expected)) == 0;
   if (!eq && !message) {
@@ -89,19 +89,19 @@ void TestInvocation::verifyEqual(const char* actual, const __FlashStringHelper* 
   verify(eq, message, allocate);
 }
 
-void TestInvocation::verifyEqual(const char* actual, const __FlashStringHelper* expected, const __FlashStringHelper* message) {
+void TestInvocation::verifyEqual(const char* actual, const FlashStr* expected, const FlashStr* message) {
   if (!_success) return; // TestInvocation already failed
   bool eq = actual && strcmp_P(actual, reinterpret_cast<PGM_P>(expected)) == 0;
   verify(eq, message);
 }
 
-void TestInvocation::verifyEqual(const char* actual, const char* expected, const __FlashStringHelper* message) {
+void TestInvocation::verifyEqual(const char* actual, const char* expected, const FlashStr* message) {
   if (!_success) return; // TestInvocation already failed
   bool eq = (actual == expected) || (actual && expected && strcmp(actual, expected) == 0);
   verify(eq, message);
 }
 
-void TestInvocation::verifyEqual(const __FlashStringHelper* actual, const char* expected, const char* message, bool allocate) {
+void TestInvocation::verifyEqual(const FlashStr* actual, const char* expected, const char* message, bool allocate) {
   if (!_success) return; // TestInvocation already failed
   bool eq = expected && strcmp_P(expected, reinterpret_cast<PGM_P>(actual)) == 0;
   if (!eq && !message) {
@@ -111,7 +111,7 @@ void TestInvocation::verifyEqual(const __FlashStringHelper* actual, const char* 
   verify(eq, message, allocate);
 }
 
-void TestInvocation::verifyEqual(const __FlashStringHelper* actual, const __FlashStringHelper* expected, const char* message, bool allocate) {
+void TestInvocation::verifyEqual(const FlashStr* actual, const FlashStr* expected, const char* message, bool allocate) {
   if (!_success) return; // TestInvocation already failed
   bool eq = flashStringEquals(actual, expected);
   if (!eq && !message) {
@@ -121,12 +121,12 @@ void TestInvocation::verifyEqual(const __FlashStringHelper* actual, const __Flas
   verify(eq, message, allocate);
 }
 
-void TestInvocation::verifyEqual(const __FlashStringHelper* actual, const __FlashStringHelper* expected, const __FlashStringHelper* message) {
+void TestInvocation::verifyEqual(const FlashStr* actual, const FlashStr* expected, const FlashStr* message) {
   if (!_success) return; // TestInvocation already failed
   verify(flashStringEquals(actual, expected), message);
 }
 
-void TestInvocation::verifyEqual(const __FlashStringHelper* actual, const char* expected, const __FlashStringHelper* message) {
+void TestInvocation::verifyEqual(const FlashStr* actual, const char* expected, const FlashStr* message) {
   if (!_success) return; // TestInvocation already failed
   bool eq = expected && strcmp_P(expected, reinterpret_cast<PGM_P>(actual)) == 0;
   verify(eq, message);
@@ -145,21 +145,21 @@ char* TestInvocation::defaultVerifyEqualsMessage(const char* actual, const char*
   return message;
 }
 
-char* TestInvocation::defaultVerifyEqualsMessage(const char* actual, const __FlashStringHelper* expected) {
+char* TestInvocation::defaultVerifyEqualsMessage(const char* actual, const FlashStr* expected) {
   char* expectedRAM = toRAM(expected);
   char* message = defaultVerifyEqualsMessage(actual, expectedRAM);
   free(expectedRAM);
   return message;
 }
 
-char* TestInvocation::defaultVerifyEqualsMessage(const __FlashStringHelper* actual, const char* expected) {
+char* TestInvocation::defaultVerifyEqualsMessage(const FlashStr* actual, const char* expected) {
   char* actualRAM = toRAM(actual);
   char* message = defaultVerifyEqualsMessage(actualRAM, expected);
   free(actualRAM);
   return message;
 }
 
-char* TestInvocation::defaultVerifyEqualsMessage(const __FlashStringHelper* actual, const __FlashStringHelper* expected) {
+char* TestInvocation::defaultVerifyEqualsMessage(const FlashStr* actual, const FlashStr* expected) {
   char* actualRAM = toRAM(actual);
   char* expectedRAM = toRAM(expected);
   char* message = defaultVerifyEqualsMessage(actualRAM, expectedRAM);
@@ -168,7 +168,7 @@ char* TestInvocation::defaultVerifyEqualsMessage(const __FlashStringHelper* actu
   return message;
 }
 
-bool TestInvocation::flashStringEquals(const __FlashStringHelper* str1, const __FlashStringHelper* str2) {
+bool TestInvocation::flashStringEquals(const FlashStr* str1, const FlashStr* str2) {
   if (str1 == str2) return true;
   if (!str1 || !str2) return false;
 
@@ -184,7 +184,7 @@ bool TestInvocation::flashStringEquals(const __FlashStringHelper* str1, const __
   }
 }
 
-char* TestInvocation::toRAM(const __FlashStringHelper* str_P) {
+char* TestInvocation::toRAM(const FlashStr* str_P) {
   if (!str_P) return nullptr;
   size_t len = strlen_P(reinterpret_cast<const char*>(str_P));
   char* str = static_cast<char*>(malloc(len + 1));
@@ -207,7 +207,7 @@ void TestInvocation::fail(const char* message, bool allocate) {
   fail();
 }
 
-void TestInvocation::fail(const __FlashStringHelper* message) {
+void TestInvocation::fail(const FlashStr* message) {
   freeMessage();
   _message = reinterpret_cast<const char*>(message);
   _isMessagePmem = true;

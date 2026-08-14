@@ -2,19 +2,15 @@
 #define TESTTOOL_TESTTOOL_H
 
 
-#include <Arduino.h>
+#include "hal/FlashStr.h"
+#include "hal/TestToolHal.h"
 #include "TestInvocation.h"
 
-extern char __heap_start, *__brkval;
-
-inline int freeMemory() {
-    char top;
-    if (__brkval == 0) {
-        return &top - &__heap_start;
-    } else {
-        return &top - __brkval;
-    }
-}
+#ifndef NO_ARDUINO
+#include <Arduino.h>
+#else
+#include <avr/pgmspace.h>
+#endif
 
 typedef void (*TestFunction)(TestInvocation*);
 typedef void (*PreOrPostFunction)();
@@ -24,33 +20,33 @@ inline bool printAndCheckResult(TestInvocation* t) {
   size_t nameLength = t->getNameLength();
   const uint8_t nameWidth = 48;
 
-  Serial.print(F("  "));
+  TestToolHal::print(F("  "));
   for (size_t i = 0; i < nameWidth; i++) {
     if (i < nameLength) {
       if (t->isNamePmem()) {
-        Serial.print((char)pgm_read_byte(&name[i]));
+        TestToolHal::print((char)pgm_read_byte(&name[i]));
       } else {
-        Serial.print(name[i]);
+        TestToolHal::print(name[i]);
       }
     } else if (i == nameLength) {
-      Serial.print(F("..."));
+      TestToolHal::print(F("..."));
       i += 2;
     } else {
-      Serial.print(F(" "));
+      TestToolHal::print(F(" "));
     }
   }
-  Serial.print(F(" "));
+  TestToolHal::print(F(" "));
   if (t->passed()) {
-    Serial.println(F("PASSED"));
+    TestToolHal::println(F("PASSED"));
   } else {
-    Serial.println(F("FAILED"));
+    TestToolHal::println(F("FAILED"));
     const char* message = t->getMessage();
     if (message) {
-      Serial.print(F("    FAILED - "));
+      TestToolHal::print(F("    FAILED - "));
       if (t->isMessagePmem()) {
-        Serial.println(reinterpret_cast<const __FlashStringHelper*>(message));
+        TestToolHal::println(reinterpret_cast<const FlashStr*>(message));
       } else {
-        Serial.println(message);
+        TestToolHal::println(message);
       }
     }
   }
@@ -68,25 +64,25 @@ inline bool invokeTest(TestFunction test, uint8_t testNum, PreOrPostFunction bef
 template <size_t N>
 void runTestSuite(TestFunction (&tests)[N], PreOrPostFunction before = nullptr,
           PreOrPostFunction after = nullptr, uint8_t repeats = 1, bool showMem = false) {
-  Serial.println(F("Running test suite..."));
+  TestToolHal::println(F("Running test suite..."));
   bool success = true;
   for (int i = 0; i < N; i++) {
     for (int r = 0; r < repeats; r++) {
       int memBefore = 0;
-      if (showMem) memBefore = freeMemory();
+      if (showMem) memBefore = TestToolHal::freeMemory();
       success &= invokeTest(tests[i], i, before, after);
       if (showMem) {
-        Serial.print(F("          Free mem before: "));
-        Serial.print(memBefore);
-        Serial.print(F(" after: "));
-        Serial.println(freeMemory());
+        TestToolHal::print(F("          Free mem before: "));
+        TestToolHal::print(memBefore);
+        TestToolHal::print(F(" after: "));
+        TestToolHal::println(TestToolHal::freeMemory());
       }
     }
   }
   if (success) {
-    Serial.println(F("All tests passed!"));
+    TestToolHal::println(F("All tests passed!"));
   } else {
-    Serial.println(F("Test suite failed!"));
+    TestToolHal::println(F("Test suite failed!"));
   }
 }
 

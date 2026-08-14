@@ -8,6 +8,9 @@
 // all.
 
 #include <TestTool.h>
+#include <BareMetalHAL.h>  // for Uart0::begin() - main() below calls it directly,
+                            // so this file should say so, not rely on TestTool.h's
+                            // own transitive include of it
 #include <string.h>
 
 void before() {

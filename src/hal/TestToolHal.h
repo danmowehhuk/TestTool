@@ -36,41 +36,14 @@ inline void println(const FlashStr* s) { Serial.println(s); }
 
 #else
 
-// All of TestTool's actual hardware access - the UART write and the
-// flash-string byte read - now comes from BareMetalHAL. Everything below
-// is still generic C++ built on top of those two primitives (int-to-string
-// formatting, etc.), same as the Arduino branch above just calling
-// BareMetalHAL::Uart0::write() instead of Serial.write().
-inline void print(const char* s) { while (s && *s) BareMetalHAL::Uart0::write((uint8_t)*s++); }
-inline void print(char c) { BareMetalHAL::Uart0::write((uint8_t)c); }
-inline void print(int v) {
-  unsigned int uv;
-  if (v < 0) {
-    BareMetalHAL::Uart0::write((uint8_t)'-');
-    uv = (unsigned int)(-(long)v);
-  } else {
-    uv = (unsigned int)v;
-  }
-  // sizeof(unsigned int)*3 comfortably covers the max decimal digit count
-  // for any int width (log10(256) ~= 2.41 digits/byte) - not hardcoded for
-  // AVR's 16-bit int, since this same code will run under a future
-  // HAL_ARM/HAL_ESP32 backend with a 32-bit int.
-  char digits[sizeof(unsigned int) * 3];
-  uint8_t n = 0;
-  do {
-    digits[n++] = '0' + (uv % 10);
-    uv /= 10;
-  } while (uv > 0);
-  while (n > 0) BareMetalHAL::Uart0::write((uint8_t)digits[--n]);
-}
-inline void print(const FlashStr* s) {
-  const char* p = reinterpret_cast<const char*>(s);
-  char c;
-  while ((c = BareMetalHAL::readByte(p++)) != '\0') BareMetalHAL::Uart0::write((uint8_t)c);
-}
-inline void println(const char* s) { print(s); print('\r'); print('\n'); }
-inline void println(int v) { print(v); print('\r'); print('\n'); }
-inline void println(const FlashStr* s) { print(s); print('\r'); print('\n'); }
+// The formatting logic (int-to-decimal-ASCII, etc.) moved into
+// BareMetalHAL itself - it's generic, reusable infrastructure with no
+// hardware dependency, not something specific to TestTool's job of
+// reporting test results. A using-declaration pulls the whole overload
+// set in under TestToolHal::print/println, so call sites elsewhere in
+// this library don't need to change.
+using BareMetalHAL::Uart0::print;
+using BareMetalHAL::Uart0::println;
 
 #endif
 

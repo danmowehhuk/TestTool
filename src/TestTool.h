@@ -1,5 +1,5 @@
-#ifndef __test_TestTool_h
-#define __test_TestTool_h
+#ifndef TESTTOOL_TESTTOOL_H
+#define TESTTOOL_TESTTOOL_H
 
 
 #include <Arduino.h>
@@ -7,7 +7,7 @@
 
 extern char __heap_start, *__brkval;
 
-int freeMemory() {
+inline int freeMemory() {
     char top;
     if (__brkval == 0) {
         return &top - &__heap_start;
@@ -19,7 +19,7 @@ int freeMemory() {
 typedef void (*TestFunction)(TestInvocation*);
 typedef void (*PreOrPostFunction)();
 
-bool printAndCheckResult(TestInvocation* t) {
+inline bool printAndCheckResult(TestInvocation* t) {
   const char* name = t->getName();
   size_t nameLength = t->getNameLength();
   const uint8_t nameWidth = 48;
@@ -44,7 +44,7 @@ bool printAndCheckResult(TestInvocation* t) {
     Serial.println(F("PASSED"));
   } else {
     Serial.println(F("FAILED"));
-    char* message = t->getMessage();
+    const char* message = t->getMessage();
     if (message) {
       Serial.print(F("    FAILED - "));
       if (t->isMessagePmem()) {
@@ -57,7 +57,7 @@ bool printAndCheckResult(TestInvocation* t) {
   return t->passed();
 }
 
-bool invokeTest(TestFunction test, uint8_t testNum, PreOrPostFunction before, PreOrPostFunction after) {
+inline bool invokeTest(TestFunction test, uint8_t testNum, PreOrPostFunction before, PreOrPostFunction after) {
   TestInvocation t(testNum);
   if (before) before();
   test(&t);
@@ -66,8 +66,8 @@ bool invokeTest(TestFunction test, uint8_t testNum, PreOrPostFunction before, Pr
 }
 
 template <size_t N>
-void runTestSuite(TestFunction (&tests)[N], PreOrPostFunction before, 
-          PreOrPostFunction after, bool showMem, uint8_t repeats = 1) {
+void runTestSuite(TestFunction (&tests)[N], PreOrPostFunction before = nullptr,
+          PreOrPostFunction after = nullptr, uint8_t repeats = 1, bool showMem = false) {
   Serial.println(F("Running test suite..."));
   bool success = true;
   for (int i = 0; i < N; i++) {
@@ -91,25 +91,9 @@ void runTestSuite(TestFunction (&tests)[N], PreOrPostFunction before,
 }
 
 template <size_t N>
-void runTestSuite(TestFunction (&tests)[N], uint8_t repeats = 1) {
-  runTestSuite(tests, nullptr, nullptr, false, repeats);
-}
-
-template <size_t N>
-void runTestSuite(TestFunction (&tests)[N], PreOrPostFunction before, 
-          PreOrPostFunction after, uint8_t repeats = 1) {
-  runTestSuite(tests, before, after, false, repeats);
-}
-
-template <size_t N>
-void runTestSuiteShowMem(TestFunction (&tests)[N], uint8_t repeats = 1) {
-  runTestSuite(tests, nullptr, nullptr, true, repeats);
-}
-
-template <size_t N>
-void runTestSuiteShowMem(TestFunction (&tests)[N], PreOrPostFunction before, 
-          PreOrPostFunction after, uint8_t repeats = 1) {
-  runTestSuite(tests, before, after, true, repeats);
+void runTestSuiteShowMem(TestFunction (&tests)[N], PreOrPostFunction before = nullptr,
+          PreOrPostFunction after = nullptr, uint8_t repeats = 1) {
+  runTestSuite(tests, before, after, repeats, true);
 }
 
 

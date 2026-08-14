@@ -78,14 +78,12 @@ void setup() {
 
 While `runTestSuite(tests)` is the simplest, there are other options when running your test suite.
 
-- `runTestSuite(tests, 3)` - Runs each test 3 times if you want to check for inconsistent results.
-- `runTestSuite(tests, beforeFunction, afterFunction`) - You can provide functions of the form\
+- `runTestSuite(tests, beforeFunction, afterFunction)` - You can provide functions of the form\
   `void myFunction()` to be run before and after each test. If you only have one, you can pass\
   `nullptr` for the other one.
 - `runTestSuite(tests, beforeFunction, afterFunction, 3)` - Same as above, but runs each test 3 times.
 - `runTestSuiteShowMem(tests)` - After each test, prints out what the free memory was before and\
   after. This is very useful for catching memory leaks.
-- `runTestSuiteShowMem(tests, 3)` - Runs each test 3x, showing the memory status after each test run.
 - `runTestSuiteShowMem(tests, beforeFunction, afterFunction)` - Same as earlier, but also printing\
   the memory status.
 - `runTestSuiteShowMem(tests, beforeFunction, afterFunction, 3)` - Same as above, but runs each test\
@@ -94,7 +92,7 @@ While `runTestSuite(tests)` is the simplest, there are other options when runnin
 
 ## Writing Test Functions
 
-The `TestInvocation` parameter passed into your test functions provides various `assert...` methods you can use
+The `TestInvocation` parameter passed into your test functions provides various `verify...` methods you can use
 for testing. If an assertion fails, the following assertions will not be evaluated. Here is an example of a 
 typical test function:
 
@@ -111,18 +109,18 @@ void testSomething(TestInvocation* t) {
   // Write some assertions. The message is only displayed if the assertion fails.
   // Any boolean expression will work, and the test will fail if it evaluates
   // to false
-  t->assert(thing.getSomeParam() == 1, "getSomeParam should have returned 1");
+  t->verify(thing.getSomeParam() == 1, "getSomeParam should have returned 1");
   
   // You can also use flash strings to save RAM
-  t->assert(thing.isActive(), F("Expected thing to be active"));
+  t->verify(thing.isActive(), F("Expected thing to be active"));
 
   // There are convenience functions for checking strings. You can pass any
   // combination of RAM or flash strings.
-  t->assertEqual(thing.getString(), F("foo"), "Expected 'foo'");
+  t->verifyEqual(thing.getString(), F("foo"), "Expected 'foo'");
 
   // You can leave out the message parameter and a generic 'expected A but got B'
   // message will be used by default
-  t->assertEqual(thing.getString(), "foo");
+  t->verifyEqual(thing.getString(), "foo");
 }
 
 ```

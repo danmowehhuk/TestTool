@@ -6,9 +6,20 @@
 #ifndef NO_ARDUINO
 #include <Arduino.h>
 #else
-#include <avr/pgmspace.h>
+#include <BareMetalHAL.h>
 #include <stdint.h>
 #include <stddef.h>
+#endif
+
+// Declared at file scope deliberately, not inside freeMemory()'s body
+// below: a block-scope `extern` declared inside a function nested in a
+// namespace binds to that namespace (TestToolHal::__heap_start), not the
+// real global symbol avr-libc's linker script defines - verified
+// empirically, not assumed (same bug, same fix, as BareMetalHAL's
+// MemoryHAL.h). Only actually referenced on the Arduino+__AVR__ branch
+// below, but harmless to declare unconditionally.
+#if defined(__AVR__)
+extern char __heap_start, *__brkval;
 #endif
 
 namespace TestToolHal {
@@ -25,35 +36,37 @@ inline void println(const FlashStr* s) { Serial.println(s); }
 
 #else
 
-// The one true hardware primitive this file needs from a HAL backend:
-// writing a single byte to the UART. Declared, not defined - a HAL backend
-// (e.g. AvrHal::Uart0::write()) needs to provide this. Everything below is
-// generic C++ built on top of it, doing the same job Serial.print/println
-// do above, just without Serial to lean on.
-void write(uint8_t b);
-
-inline void print(const char* s) { while (s && *s) write((uint8_t)*s++); }
-inline void print(char c) { write((uint8_t)c); }
+// All of TestTool's actual hardware access - the UART write and the
+// flash-string byte read - now comes from BareMetalHAL. Everything below
+// is still generic C++ built on top of those two primitives (int-to-string
+// formatting, etc.), same as the Arduino branch above just calling
+// BareMetalHAL::Uart0::write() instead of Serial.write().
+inline void print(const char* s) { while (s && *s) BareMetalHAL::Uart0::write((uint8_t)*s++); }
+inline void print(char c) { BareMetalHAL::Uart0::write((uint8_t)c); }
 inline void print(int v) {
   unsigned int uv;
   if (v < 0) {
-    write((uint8_t)'-');
+    BareMetalHAL::Uart0::write((uint8_t)'-');
     uv = (unsigned int)(-(long)v);
   } else {
     uv = (unsigned int)v;
   }
-  char digits[5];  // max "32768" (5 digits) for a 16-bit int magnitude
+  // sizeof(unsigned int)*3 comfortably covers the max decimal digit count
+  // for any int width (log10(256) ~= 2.41 digits/byte) - not hardcoded for
+  // AVR's 16-bit int, since this same code will run under a future
+  // HAL_ARM/HAL_ESP32 backend with a 32-bit int.
+  char digits[sizeof(unsigned int) * 3];
   uint8_t n = 0;
   do {
     digits[n++] = '0' + (uv % 10);
     uv /= 10;
   } while (uv > 0);
-  while (n > 0) write((uint8_t)digits[--n]);
+  while (n > 0) BareMetalHAL::Uart0::write((uint8_t)digits[--n]);
 }
 inline void print(const FlashStr* s) {
   const char* p = reinterpret_cast<const char*>(s);
   char c;
-  while ((c = (char)pgm_read_byte(p++)) != '\0') write((uint8_t)c);
+  while ((c = BareMetalHAL::readByte(p++)) != '\0') BareMetalHAL::Uart0::write((uint8_t)c);
 }
 inline void println(const char* s) { print(s); print('\r'); print('\n'); }
 inline void println(int v) { print(v); print('\r'); print('\n'); }
@@ -61,14 +74,15 @@ inline void println(const FlashStr* s) { print(s); print('\r'); print('\n'); }
 
 #endif
 
-// freeMemory() reads AVR-libc's heap high-water-mark globals directly, so
-// it works identically on Arduino or bare-metal AVR - it's gated on
-// __AVR__ (set by the compiler itself), not NO_ARDUINO, and needs nothing
-// from a HAL backend. Stubbed on any other target until there's a real
-// equivalent to provide.
+// freeMemory(): on Arduino, reads AVR-libc's heap high-water-mark globals
+// directly (gated on __AVR__, not NO_ARDUINO, since these are avr-libc
+// internals available on any AVR build) - kept local rather than pulled
+// from BareMetalHAL so Arduino-only users of this library never need
+// BareMetalHAL installed at all. Off Arduino, delegates to BareMetalHAL's
+// copy of the exact same logic.
+#ifndef NO_ARDUINO
 #if defined(__AVR__)
 inline int freeMemory() {
-  extern char __heap_start, *__brkval;
   char top;
   if (__brkval == 0) {
     return &top - &__heap_start;
@@ -80,6 +94,9 @@ inline int freeMemory() {
 inline int freeMemory() {
   return -1;
 }
+#endif
+#else
+inline int freeMemory() { return BareMetalHAL::freeMemory(); }
 #endif
 
 }  // namespace TestToolHal

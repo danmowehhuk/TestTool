@@ -4,24 +4,15 @@
 // A type-tag for "this pointer is to a flash-resident string," used purely
 // for overload resolution - never defined/instantiated, only ever seen as
 // FlashStr*. On Arduino this is just an alias for the framework's own
-// (reserved-name) __FlashStringHelper. Off Arduino we need our own,
-// because __FlashStringHelper doesn't exist without Arduino.h - defined
-// under a project-owned name rather than reusing that reserved identifier
-// (see d8fba9e's header-guard fix for the same category of issue).
+// (reserved-name) __FlashStringHelper. Off Arduino, the real type and F()
+// macro live in BareMetalHAL (shared across every library, since the
+// implementation is target-specific, not TestTool-specific) - this is
+// just a local alias so TestTool's own code can keep saying bare
+// `FlashStr` either way.
 //
-// F(x) mirrors Arduino's own trick: PSTR places the literal in flash and
-// returns a const char*; the cast is only there so overload resolution can
-// tell a flash string apart from a RAM one.
-//
-// Branches on NO_ARDUINO directly - the single flag every library checks,
-// same as every other file under hal/. Which non-Arduino backend is active
-// (HAL_AVR, HAL_ESP32, ...) is BareMetalHal's concern, not this file's.
-//
-// The non-Arduino branch below is AVR-specific (PSTR/pgmspace). When a
-// second non-Arduino target exists (HAL_ESP32, HAL_ARM), this needs a
-// per-target split - flash and RAM aren't actually distinct address spaces
-// on those targets (see the BareMetalHal design notes), so F(x) there can
-// likely just expand to x unchanged.
+// Branches on NO_ARDUINO directly - the single flag every library checks.
+// Which non-Arduino backend is active (HAL_AVR, HAL_ESP32, ...) is
+// BareMetalHAL's concern, never this file's.
 
 #ifndef NO_ARDUINO
 
@@ -31,9 +22,9 @@ using FlashStr = __FlashStringHelper;
 
 #else
 
-#include <avr/pgmspace.h>
-class FlashStr;
-#define F(string_literal) (reinterpret_cast<const FlashStr*>(PSTR(string_literal)))
+#include <BareMetalHAL.h>
+using FlashStr = BareMetalHAL::FlashStr;
+// F() is already provided by BareMetalHAL.h
 
 #endif
 

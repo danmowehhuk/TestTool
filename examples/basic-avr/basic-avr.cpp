@@ -1,4 +1,4 @@
-// Bare-metal AVR port of ../test-suite/test-suite.ino - same test logic,
+// Bare-metal AVR port of ../basic/basic.ino - same test logic,
 // built with -DNO_ARDUINO -DHAL_AVR via avr-g++ directly (see build.sh),
 // no Arduino dependency at all: no arduino-cli, no Arduino core, no
 // Serial, no String. Uses the exact same verify/verifyEqual/F() calls as

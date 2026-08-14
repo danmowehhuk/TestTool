@@ -4,7 +4,7 @@
 #   ./build.sh        Build a .hex suitable for flashing to real hardware
 #   ./build.sh -s     Build a .hex suitable for SimulIDE simulation
 #
-# Unlike the sibling test-suite example, this one does not go through
+# Unlike the sibling basic example, this one does not go through
 # arduino-cli or any Arduino core at all - it compiles and links directly
 # with avr-g++ using -DNO_ARDUINO -DHAL_AVR, proving the bare-metal path
 # builds independently of Arduino, the same way any non-Arduino AVR
@@ -80,14 +80,14 @@ mkdir -p "$BUILD_DIR"
 "$AVRGXX" -std=gnu++11 -Wall -Wextra -Os -DNO_ARDUINO -DHAL_AVR -DF_CPU=16000000UL -mmcu=atmega2560 \
   -I "$DIR/../../src" \
   -I "$BAREMETALHAL_SRC" \
-  "$DIR/test-suite-avr.cpp" "$DIR/../../src/TestInvocation.cpp" -o "$BUILD_DIR/test-suite-avr.elf"
+  "$DIR/basic-avr.cpp" "$DIR/../../src/TestInvocation.cpp" -o "$BUILD_DIR/basic-avr.elf"
 
-"$AVROBJCOPY" -O ihex -R .eeprom "$BUILD_DIR/test-suite-avr.elf" "$BUILD_DIR/test-suite-avr.hex"
+"$AVROBJCOPY" -O ihex -R .eeprom "$BUILD_DIR/basic-avr.elf" "$BUILD_DIR/basic-avr.hex"
 
-echo "Built $BUILD_DIR/test-suite-avr.hex"
+echo "Built $BUILD_DIR/basic-avr.hex"
 
 if $SIM_MODE; then
-  HEX="$BUILD_DIR/test-suite-avr.hex"
+  HEX="$BUILD_DIR/basic-avr.hex"
   SIM_HEX="${HEX%.hex}.sim.hex"
   python3 - "$HEX" "$SIM_HEX" << 'EOF'
 import sys

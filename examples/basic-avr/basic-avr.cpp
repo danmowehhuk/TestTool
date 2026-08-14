@@ -1,16 +1,10 @@
-// Bare-metal AVR port of ../basic/basic.ino - same test logic,
-// built with -DNO_ARDUINO -DHAL_AVR via avr-g++ directly (see build.sh),
-// no Arduino dependency at all: no arduino-cli, no Arduino core, no
-// Serial, no String. Uses the exact same verify/verifyEqual/F() calls as
-// the Arduino version, unchanged - BareMetalHAL's FlashStr makes F() work
-// identically on both branches, so unlike the earlier (abandoned)
-// per-library HAL experiment, this file needs no _P-suffixed variants at
-// all.
+// Bare-metal AVR port of ../basic/basic.ino: same test logic, built with
+// avr-g++ directly via build.sh (-DNO_ARDUINO -DHAL_AVR) - no Arduino
+// dependency at all: no arduino-cli, no Arduino core, no Serial, no
+// String. verify/verifyEqual/F() work exactly like the Arduino version.
 
 #include <TestTool.h>
-#include <BareMetalHAL.h>  // for Uart0::begin() - main() below calls it directly,
-                            // so this file should say so, not rely on TestTool.h's
-                            // own transitive include of it
+#include <BareMetalHAL.h> 
 #include <string.h>
 
 void before() {

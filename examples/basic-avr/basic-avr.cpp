@@ -22,7 +22,6 @@ void testThatPasses(TestInvocation* t) {
 
 void testThatFails(TestInvocation* t) {
   t->setName(F("Test something that fails"));
-  // No Arduino String off Arduino - plain const char* instead.
   const char* myString = "abc";
   t->verify(myString[0] == 'F', F("myString must start with F"));
   t->verify(strlen(myString) == 3, "nope");
@@ -50,7 +49,6 @@ void testAllTheThings(TestInvocation* t) {
 }
 
 int main() {
-  // The caller's job, not TestToolHal's - see BareMetalHAL/UartHAL.h.
   BareMetalHAL::Uart0::begin(9600);
 
   TestFunction tests[] = {

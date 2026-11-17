@@ -66,7 +66,7 @@ void runTestSuite(TestFunction (&tests)[N], PreOrPostFunction before = nullptr,
           PreOrPostFunction after = nullptr, uint8_t repeats = 1, bool showMem = false) {
   TestToolHal::println(F("Running test suite..."));
   bool success = true;
-  for (int i = 0; i < N; i++) {
+  for (size_t i = 0; i < N; i++) {
     for (int r = 0; r < repeats; r++) {
       int memBefore = 0;
       if (showMem) memBefore = TestToolHal::freeMemory();
